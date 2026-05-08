@@ -56,3 +56,11 @@ def test_routes_registered():
     paths = {str(rule) for rule in app.url_map.iter_rules()}
     assert "/api/research/trees/<tree_id>/nl-search" in paths
     assert "/api/research/trees/<tree_id>/nl-search/suggestions" in paths
+    assert "/api/research/trees/<tree_id>/analytics/individuals" in paths
+    assert "/api/research/trees/<tree_id>/analytics/families" in paths
+    assert "/api/research/trees/<tree_id>/analytics/events" in paths
+    assert "/api/research/trees/<tree_id>/analytics/places" in paths
+    assert "/api/research/trees/<tree_id>/analytics/dates" in paths
+    assert "/api/research/trees/<tree_id>/analytics/media" in paths
+    assert "/api/research/trees/<tree_id>/analytics/open-questions" in paths
+    assert "/api/research/trees/<tree_id>/analytics/notes" in paths
