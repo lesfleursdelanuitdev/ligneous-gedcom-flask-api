@@ -15,7 +15,11 @@ Python research/analytics API for the Ligneous genealogy stack. Built with Flask
    pip install -r requirements.txt
    ```
 
-3. **Environment:** Copy `.env.example` to `.env` and set `DATABASE_URL` to the same Postgres instance used by ligneous-frontend (e.g. `postgresql://user:password@localhost:5432/ligneous`).
+3. **Environment:** Copy `.env.example` to `.env` and configure:
+   - `DATABASE_URL` to the same Postgres instance used by ligneous-frontend (e.g. `postgresql://user:password@localhost:5432/ligneous`).
+   - `GROQ_API_KEY` for natural-language search (Groq LLM). Optional overrides: `GROQ_MODEL`, `GROQ_TIMEOUT_SECONDS`, `NL_MAX_ROWS`, `NL_MAX_PROMPT_CHARS`.
+   - `NL_PERSIST_QUERY_RUNS` — set to `false` to disable writes to `research.query_runs` / `research.result_sets` globally (e.g. deployment with no research write grants). Per-request: upstream can send `X-Research-Persist: false` to skip persistence when env default is `true` (used by the read-only public frontend).
+   - **Important:** never commit real secrets. Put real values only in `.env` (gitignored), not in `.env.example`.
 
 4. **Research schema:** Run the migration to create the `research` schema and tables:
 
@@ -47,5 +51,7 @@ By default the server listens on `http://0.0.0.0:5001`. Override with `HOST` and
 - **GET /api/research/schema-check** — Verify research schema exists.
 - **GET /api/research/trees/<tree_id>/analytics/given-names** — Given names statistics (summary, top names, frequency distribution, by sex, by decade). Query param: `limit` (default 50, max 200).
 - **GET /api/research/trees/<tree_id>/analytics/surnames** — Surname statistics (summary, top surnames, frequency distribution, Soundex groups). Query param: `limit` (default 50, max 200).
+- **POST /api/research/trees/<tree_id>/nl-search** — Natural-language search backed by Groq. Body: `{ "query": "<free text>", "context": { ...optional... } }`. Returns `{ query, intent, confidence, result, meta: { run_id, ... } }`. Maps NL prompts to a fixed set of safe analytics intents (top given names, top surnames, names by decade, names by sex, surname Soundex groups, name lookups). Persists each call to `research.query_runs` and `research.result_sets`.
+- **GET /api/research/trees/<tree_id>/nl-search/suggestions** — Returns starter prompts to seed the UI.
 
 Further routes (saved queries, statistics, analysis runs, exports, reports) can be added under `/api` as needed.

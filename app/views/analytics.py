@@ -287,10 +287,77 @@ def surnames_statistics(tree_id: str):
             )
             soundex_groups = [dict(row) for row in cur.fetchall()]
 
+            # By decade (birth year) - for temporal charts (top 20 surnames only)
+            cur.execute(
+                """
+                WITH top_surnames AS (
+                    SELECT id FROM gedcom_surnames_v2
+                    WHERE file_uuid = %s
+                    ORDER BY frequency DESC
+                    LIMIT 20
+                )
+                SELECT
+                    s.surname AS name,
+                    (FLOOR(ind.birth_year::numeric / 10) * 10)::int AS decade,
+                    COUNT(DISTINCT ind.id) AS count
+                FROM gedcom_surnames_v2 s
+                JOIN gedcom_name_form_surnames nfs ON nfs.surname_id = s.id
+                JOIN gedcom_individual_name_forms nf ON nf.id = nfs.name_form_id
+                JOIN gedcom_individuals_v2 ind ON ind.id = nf.individual_id
+                WHERE s.file_uuid = %s
+                  AND ind.birth_year IS NOT NULL
+                  AND s.id IN (SELECT id FROM top_surnames)
+                GROUP BY s.surname, decade
+                ORDER BY s.surname, decade
+                """,
+                (file_uuid, file_uuid),
+            )
+            popularity_by_decade = [dict(row) for row in cur.fetchall()]
+
+            # By place (birth country) - for location charts (top 15 surnames, top 20 countries)
+            cur.execute(
+                """
+                WITH top_surnames AS (
+                    SELECT id FROM gedcom_surnames_v2
+                    WHERE file_uuid = %s
+                    ORDER BY frequency DESC
+                    LIMIT 15
+                ),
+                top_countries AS (
+                    SELECT COALESCE(p.country, 'Unknown') AS place_country
+                    FROM gedcom_individuals_v2 ind
+                    JOIN gedcom_places_v2 p ON p.id = ind.birth_place_id
+                    WHERE ind.file_uuid = %s AND ind.birth_place_id IS NOT NULL
+                    GROUP BY COALESCE(p.country, 'Unknown')
+                    ORDER BY COUNT(*) DESC
+                    LIMIT 20
+                )
+                SELECT
+                    s.surname AS name,
+                    COALESCE(p.country, 'Unknown') AS place_country,
+                    COUNT(DISTINCT ind.id) AS count
+                FROM gedcom_surnames_v2 s
+                JOIN gedcom_name_form_surnames nfs ON nfs.surname_id = s.id
+                JOIN gedcom_individual_name_forms nf ON nf.id = nfs.name_form_id
+                JOIN gedcom_individuals_v2 ind ON ind.id = nf.individual_id
+                LEFT JOIN gedcom_places_v2 p ON p.id = ind.birth_place_id
+                WHERE s.file_uuid = %s
+                  AND ind.birth_place_id IS NOT NULL
+                  AND s.id IN (SELECT id FROM top_surnames)
+                  AND COALESCE(p.country, 'Unknown') IN (SELECT place_country FROM top_countries)
+                GROUP BY s.surname, COALESCE(p.country, 'Unknown')
+                ORDER BY s.surname, place_country
+                """,
+                (file_uuid, file_uuid, file_uuid),
+            )
+            popularity_by_place = [dict(row) for row in cur.fetchall()]
+
     return jsonify({
         "tree_id": tree_id,
         "summary": summary,
         "top_surnames": top_surnames,
         "frequency_distribution": frequency_distribution,
         "soundex_groups": soundex_groups,
+        "popularity_by_decade": popularity_by_decade,
+        "popularity_by_place": popularity_by_place,
     })
