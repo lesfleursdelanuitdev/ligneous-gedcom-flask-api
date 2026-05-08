@@ -3,3 +3,9 @@ psycopg2-binary>=2.9.9
 python-dotenv>=1.0.0
 groq>=1.2.0
 pytest>=8.0
+
+# Graph + tabular analytics (pedigree introspection, aggregates, quick charts)
+networkx>=3.2
+pandas>=2.2
+matplotlib>=3.8
+plotly>=5.24

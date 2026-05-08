@@ -137,3 +137,86 @@ def test_nl_http_post_integration(nl_tree_context, monkeypatch):
     body = res.get_json()
     assert body.get("intent") == intents.INTENT_TOP_SURNAMES
     assert isinstance((body.get("result") or {}).get("top_surnames"), list)
+
+
+def test_run_intent_born_in_place_returns_matches_list(nl_tree_context):
+    file_uuid = nl_tree_context["file_uuid"]
+    out = intents.run_intent(
+        intents.INTENT_BORN_IN_PLACE,
+        file_uuid,
+        {"place": "zznonexistent-region-no-match-xx", "limit": 5},
+        200,
+    )
+    assert out["ok"] is True
+    assert isinstance((out.get("result") or {}).get("matches"), list)
+
+
+def test_run_intent_lifespan_stats_returns_summary_shape(nl_tree_context):
+    file_uuid = nl_tree_context["file_uuid"]
+    out = intents.run_intent(intents.INTENT_LIFESPAN_STATS, file_uuid, {}, 200)
+    assert out["ok"] is True
+    summary = (out.get("result") or {}).get("summary") or {}
+    assert "avg_age" in summary
+    assert "count" in summary
+    if summary["count"] == 0:
+        pytest.skip("No individuals with age_at_death in-range for this fixture tree.")
+
+
+def test_run_intent_migration_places_returns_countries_list(nl_tree_context):
+    file_uuid = nl_tree_context["file_uuid"]
+    out = intents.run_intent(
+        intents.INTENT_MIGRATION_PLACES, file_uuid, {"limit": 10}, 200
+    )
+    assert out["ok"] is True
+    assert isinstance((out.get("result") or {}).get("countries"), list)
+
+
+def test_run_intent_search_individuals_returns_matches_list(nl_tree_context):
+    file_uuid = nl_tree_context["file_uuid"]
+    out = intents.run_intent(
+        intents.INTENT_SEARCH_INDIVIDUALS,
+        file_uuid,
+        {"surname": "Gonsalves", "limit": 10},
+        200,
+    )
+    assert out["ok"] is True
+    assert isinstance((out.get("result") or {}).get("matches"), list)
+
+
+def test_run_intent_cause_of_death_returns_causes_list(nl_tree_context):
+    file_uuid = nl_tree_context["file_uuid"]
+    out = intents.run_intent(
+        intents.INTENT_CAUSE_OF_DEATH, file_uuid, {"limit": 10}, 200
+    )
+    assert out["ok"] is True
+    assert isinstance((out.get("result") or {}).get("causes"), list)
+
+
+def test_run_intent_relationship_between_same_xref_ok(nl_tree_context):
+    file_uuid = nl_tree_context["file_uuid"]
+
+    from app.db import get_connection
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT xref FROM gedcom_individuals_v2
+                WHERE file_uuid = %s AND xref IS NOT NULL AND TRIM(xref) <> ''
+                LIMIT 1
+                """,
+                (file_uuid,),
+            )
+            row = cur.fetchone()
+    if not row or not row.get("xref"):
+        pytest.skip("No individual xref rows to pin relationship_between.")
+    xref = row["xref"]
+    out = intents.run_intent(
+        intents.INTENT_RELATIONSHIP_BETWEEN,
+        file_uuid,
+        {"source_xref": xref, "target_xref": xref},
+        200,
+    )
+    assert out["ok"] is True
+    body = out.get("result") or {}
+    assert body.get("category") == "same_individual"

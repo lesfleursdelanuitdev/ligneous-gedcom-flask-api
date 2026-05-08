@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 
 import pytest
 
@@ -37,6 +38,17 @@ def test_nl_search_rejects_empty_query(client):
         content_type="application/json",
     )
     assert res.status_code == 400
+
+
+def test_nl_search_unknown_tree_returns_404(client):
+    missing = str(uuid.uuid4())
+    res = client.post(
+        f"/api/research/trees/{missing}/nl-search",
+        data=json.dumps({"query": "How big is the tree?"}),
+        content_type="application/json",
+    )
+    assert res.status_code == 404
+    assert "not found" in (res.get_json() or {}).get("error", "").lower()
 
 
 def test_routes_registered():
