@@ -39,9 +39,15 @@ With the virtual environment activated:
 python run.py
 ```
 
-Or with gunicorn: `gunicorn app.application:app --bind 0.0.0.0:5001`
+Or with Gunicorn (also used in production):
 
-By default the server listens on `http://0.0.0.0:5001`. Override with `HOST` and `PORT` in `.env`.
+```bash
+gunicorn app.application:app --bind 0.0.0.0:5001
+```
+
+For a public hostname (e.g. `analytics.gonsalvesfamily.com`), bind **loopback** and put nginx in front. See **[deploy/README.md](./deploy/README.md)** for systemd + nginx on the same host as Postgres and the Next apps.
+
+Local dev listens on `http://0.0.0.0:5001` by default (`HOST` / `PORT` in `.env`).
 
 ## Endpoints
 

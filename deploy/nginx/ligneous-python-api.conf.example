@@ -1,0 +1,33 @@
+# Example nginx site: TLS in front of ligneous-python-api on 127.0.0.1:5001
+#
+# 1. Copy to /etc/nginx/sites-available/ligneous-python-api and symlink into sites-enabled.
+# 2. Replace server_name and ssl_certificate paths (e.g. certbot for analytics.gonsalvesfamily.com).
+# 3. Ensure the systemd unit binds Gunicorn to 127.0.0.1:5001 only.
+
+upstream ligneous_python_api {
+    server 127.0.0.1:5001;
+    keepalive 16;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name analytics.gonsalvesfamily.com;
+
+    # ssl_certificate     /etc/letsencrypt/live/analytics.gonsalvesfamily.com/fullchain.pem;
+    # ssl_certificate_key /etc/letsencrypt/live/analytics.gonsalvesfamily.com/privkey.pem;
+
+    client_max_body_size 4m;
+
+    location / {
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Connection "";
+        proxy_read_timeout 120s;
+        proxy_send_timeout 120s;
+        proxy_pass http://ligneous_python_api;
+    }
+}

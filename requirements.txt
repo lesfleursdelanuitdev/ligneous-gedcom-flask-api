@@ -1,7 +1,9 @@
 Flask>=3.0.0
+gunicorn>=22.0.0
 psycopg2-binary>=2.9.9
 python-dotenv>=1.0.0
 groq>=1.2.0
+jellyfish>=1.0.0
 pytest>=8.0
 
 # Graph + tabular analytics (pedigree introspection, aggregates, quick charts)

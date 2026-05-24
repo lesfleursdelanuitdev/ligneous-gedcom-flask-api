@@ -1,0 +1,28 @@
+[Unit]
+Description=Ligneous Python research / analytics API (Flask + Gunicorn)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Edit paths and User to match your server layout.
+User=ligneous
+Group=ligneous
+WorkingDirectory=/apps/gonsalves-genealogy/ligneous-python-api
+EnvironmentFile=-/apps/gonsalves-genealogy/ligneous-python-api/.env
+ExecStart=/apps/gonsalves-genealogy/ligneous-python-api/.venv/bin/gunicorn \
+  app.application:app \
+  --bind 127.0.0.1:5001 \
+  --workers 4 \
+  --timeout 120 \
+  --access-logfile - \
+  --error-logfile -
+Restart=always
+RestartSec=3
+LimitNOFILE=65535
+
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
