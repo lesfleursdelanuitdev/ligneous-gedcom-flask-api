@@ -47,7 +47,7 @@ def _relationship_anchor_error_payload(
     return out
 def _handle_individual_ancestors(file_uuid: str, params: dict[str, Any], max_rows: int) -> dict[str, Any]:
     gen_cap = _clamp(params.get("max_generations"), default=15, lo=1, hi=40)
-    limit = _clamp(params.get("limit"), default=min(100, max_rows), lo=1, hi=max_rows)
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     with get_connection() as conn:
         with conn.cursor() as cur:
             anchor_id, err = _resolve_anchor_individual_id(cur, file_uuid, params)
@@ -87,7 +87,7 @@ def _handle_individual_ancestors(file_uuid: str, params: dict[str, Any], max_row
 
 def _handle_individual_descendants(file_uuid: str, params: dict[str, Any], max_rows: int) -> dict[str, Any]:
     gen_cap = _clamp(params.get("max_generations"), default=15, lo=1, hi=40)
-    limit = _clamp(params.get("limit"), default=min(100, max_rows), lo=1, hi=max_rows)
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     with get_connection() as conn:
         with conn.cursor() as cur:
             anchor_id, err = _resolve_anchor_individual_id(cur, file_uuid, params)
@@ -126,7 +126,7 @@ def _handle_individual_descendants(file_uuid: str, params: dict[str, Any], max_r
 
 
 def _handle_individual_cousins(file_uuid: str, params: dict[str, Any], max_rows: int) -> dict[str, Any]:
-    limit = _clamp(params.get("limit"), default=min(100, max_rows), lo=1, hi=max_rows)
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     with get_connection() as conn:
         with conn.cursor() as cur:
             anchor_id, err = _resolve_anchor_individual_id(cur, file_uuid, params)

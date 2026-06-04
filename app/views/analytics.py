@@ -10,6 +10,8 @@ from app.services.analytics.names import get_given_names_statistics, get_surname
 from app.services.analytics.notes import get_notes_statistics
 from app.services.analytics.open_questions import get_open_questions_statistics
 from app.services.analytics.places import get_places_statistics
+from app.services.analytics.lineages import get_lineages_statistics
+from app.services.analytics.branches import get_branches_statistics
 
 bp = Blueprint("analytics", __name__, url_prefix="/api/research/trees")
 
@@ -186,6 +188,37 @@ def notes_statistics(tree_id: str):
     """
     top_n = min(int(request.args.get("top_n", 10)), 40)
     payload = get_notes_statistics(tree_id, top_n)
+    if payload is None:
+        return jsonify({"error": "Tree not found"}), 404
+    return jsonify(payload)
+
+
+@bp.route("/<tree_id>/analytics/lineages", methods=["GET"])
+def lineages_statistics(tree_id: str):
+    """
+    GET /api/research/trees/<tree_id>/analytics/lineages
+
+    Surname-based descent groups (lineages table): summary counts, top lineages
+    by size, size distribution buckets, longest-spanning and earliest lineages.
+
+    Query param: top_n (default 20, max 50).
+    """
+    top_n = min(int(request.args.get("top_n", 20)), 50)
+    payload = get_lineages_statistics(tree_id, top_n)
+    if payload is None:
+        return jsonify({"error": "Tree not found"}), 404
+    return jsonify(payload)
+
+
+@bp.route("/<tree_id>/analytics/branches", methods=["GET"])
+def branches_statistics(tree_id: str):
+    """
+    GET /api/research/trees/<tree_id>/analytics/branches
+
+    Disconnected components of the family graph (gedcom_branches table): summary,
+    all branches ordered by size, and main-branch coverage percentage.
+    """
+    payload = get_branches_statistics(tree_id)
     if payload is None:
         return jsonify({"error": "Tree not found"}), 404
     return jsonify(payload)

@@ -12,7 +12,7 @@ def _handle_individuals_age_at_death(file_uuid: str, params: dict[str, Any], max
     sym_map = {"lt": "<", "lte": "<=", "gt": ">", "gte": ">=", "eq": "="}
     sql_cmp = sym_map.get(op_key)
     age_compare = _clamp(params.get("age"), default=70, lo=0, hi=130)
-    limit = _clamp(params.get("limit"), default=min(75, max_rows), lo=1, hi=max_rows)
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     if sql_cmp is None:
         return {"matches": [], "operator": op_key, "note": "Invalid op; use lt, lte, gt, gte, or eq"}
 
@@ -45,7 +45,7 @@ def _handle_individuals_lifespan_years(file_uuid: str, params: dict[str, Any], m
     max_years = _clamp(params.get("max_years"), default=130, lo=0, hi=130)
     if min_years > max_years:
         min_years, max_years = max_years, min_years
-    limit = _clamp(params.get("limit"), default=min(75, max_rows), lo=1, hi=max_rows)
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -105,7 +105,7 @@ def _handle_born_in_decade(file_uuid: str, params: dict[str, Any], max_rows: int
             "note": "Missing or invalid decade parameter",
         }
     decade = yr - (yr % 10)
-    limit = _clamp(params.get("limit"), default=min(20, max_rows), lo=1, hi=min(200, max_rows))
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     end_y = decade + 10
     with get_connection() as conn:
         with conn.cursor() as cur:

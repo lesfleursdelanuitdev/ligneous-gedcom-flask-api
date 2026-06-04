@@ -8,7 +8,7 @@ from app.db import get_connection
 from app.analytics.intents.utils import _clamp, _ilike_pattern, _sex_code_from_param, _string
 
 def _handle_search_individuals(file_uuid: str, params: dict[str, Any], max_rows: int) -> dict[str, Any]:
-    limit = _clamp(params.get("limit"), default=min(20, max_rows), lo=1, hi=min(200, max_rows))
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     clauses: list[str] = ["file_uuid = %s"]
     args: list[Any] = [file_uuid]
 
@@ -89,7 +89,7 @@ def _sex_code_from_param(value: Any) -> str | None:
 
 
 def _handle_search_families(file_uuid: str, params: dict[str, Any], max_rows: int) -> dict[str, Any]:
-    limit = _clamp(params.get("limit"), default=min(20, max_rows), lo=1, hi=min(200, max_rows))
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     clauses: list[str] = ["file_uuid = %s"]
     args: list[Any] = [file_uuid]
 
@@ -145,7 +145,7 @@ def _handle_search_families(file_uuid: str, params: dict[str, Any], max_rows: in
 
 
 def _handle_search_events(file_uuid: str, params: dict[str, Any], max_rows: int) -> dict[str, Any]:
-    limit = _clamp(params.get("limit"), default=min(20, max_rows), lo=1, hi=min(200, max_rows))
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     joins = (
         " LEFT JOIN gedcom_dates_v2 d ON d.id = ev.date_id AND d.file_uuid = ev.file_uuid"
         " LEFT JOIN gedcom_places_v2 p ON p.id = ev.place_id AND p.file_uuid = ev.file_uuid"
@@ -194,7 +194,7 @@ def _handle_search_events(file_uuid: str, params: dict[str, Any], max_rows: int)
 
 
 def _handle_search_notes(file_uuid: str, params: dict[str, Any], max_rows: int) -> dict[str, Any]:
-    limit = _clamp(params.get("limit"), default=min(20, max_rows), lo=1, hi=min(200, max_rows))
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     tx = _string(params.get("text"))
     if not tx:
         return {"matches": [], "note": "Missing text parameter", "limit": limit}
@@ -222,7 +222,7 @@ def _handle_search_notes(file_uuid: str, params: dict[str, Any], max_rows: int) 
 
 
 def _handle_search_sources(file_uuid: str, params: dict[str, Any], max_rows: int) -> dict[str, Any]:
-    limit = _clamp(params.get("limit"), default=min(20, max_rows), lo=1, hi=min(200, max_rows))
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     clauses = ["file_uuid = %s"]
     args: list[Any] = [file_uuid]
     for key, col in (
@@ -252,7 +252,7 @@ def _handle_search_sources(file_uuid: str, params: dict[str, Any], max_rows: int
 
 
 def _handle_search_media(file_uuid: str, params: dict[str, Any], max_rows: int) -> dict[str, Any]:
-    limit = _clamp(params.get("limit"), default=min(20, max_rows), lo=1, hi=min(200, max_rows))
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     clauses = ["file_uuid = %s"]
     args: list[Any] = [file_uuid]
     for key, col in (("title", "title"), ("description", "description"), ("form", "form")):

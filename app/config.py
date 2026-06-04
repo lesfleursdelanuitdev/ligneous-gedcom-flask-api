@@ -15,7 +15,7 @@ GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 GROQ_TIMEOUT_SECONDS = float(os.environ.get("GROQ_TIMEOUT_SECONDS", "20"))
 
 # NL search execution caps (defense-in-depth alongside allowlisted SQL templates).
-NL_MAX_ROWS = int(os.environ.get("NL_MAX_ROWS", "200"))
+NL_MAX_ROWS = int(os.environ.get("NL_MAX_ROWS", "2000"))
 NL_MAX_PROMPT_CHARS = int(os.environ.get("NL_MAX_PROMPT_CHARS", "1000"))
 
 # When false, never insert into research.query_runs / research.result_sets (useful for DB users

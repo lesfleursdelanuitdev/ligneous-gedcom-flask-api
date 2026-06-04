@@ -15,7 +15,7 @@ def _handle_individuals_by_locality(file_uuid: str, params: dict[str, Any], max_
     needle = _ilike_pattern(locality)
     sur_hint = _string(params.get("primary_surname_substring"))
     surname_needle = _ilike_pattern(sur_hint) if sur_hint else ""
-    limit = _clamp(params.get("limit"), default=min(50, max_rows), lo=1, hi=max_rows)
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     if facet == "burial":
         sur_clause = ""
         sur_args_sql: list[Any] = []
@@ -117,7 +117,7 @@ def _handle_marriages_by_place(file_uuid: str, params: dict[str, Any], max_rows:
     if not locality:
         return {"matches": [], "note": "Missing locality"}
     needle = _ilike_pattern(locality)
-    limit = _clamp(params.get("limit"), default=min(40, max_rows), lo=1, hi=max_rows)
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -141,7 +141,7 @@ def _handle_individual_events_by_place(file_uuid: str, params: dict[str, Any], m
     if not locality:
         return {"matches": [], "note": "Missing locality"}
     needle = _ilike_pattern(locality)
-    limit = _clamp(params.get("limit"), default=min(50, max_rows), lo=1, hi=max_rows)
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     evt = _string(params.get("event_type_substring")).lower()
     evt_filter = ""
     extra_args: list[Any] = []
@@ -178,7 +178,7 @@ def _handle_individual_events_by_place(file_uuid: str, params: dict[str, Any], m
     return {"locality": locality, "matches": rows, "limit": limit, "event_type_substring": evt or None}
 def _handle_born_in_place(file_uuid: str, params: dict[str, Any], max_rows: int) -> dict[str, Any]:
     place = params.get("place")
-    limit = _clamp(params.get("limit"), default=min(20, max_rows), lo=1, hi=min(200, max_rows))
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     if not place or not str(place).strip():
         return {
             "matches": [],
@@ -205,7 +205,7 @@ def _handle_born_in_place(file_uuid: str, params: dict[str, Any], max_rows: int)
 
 def _handle_died_in_place(file_uuid: str, params: dict[str, Any], max_rows: int) -> dict[str, Any]:
     place = params.get("place")
-    limit = _clamp(params.get("limit"), default=min(20, max_rows), lo=1, hi=min(200, max_rows))
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     if not place or not str(place).strip():
         return {
             "matches": [],
@@ -247,7 +247,7 @@ def _handle_born_in_decade(file_uuid: str, params: dict[str, Any], max_rows: int
             "note": "Missing or invalid decade parameter",
         }
     decade = yr - (yr % 10)
-    limit = _clamp(params.get("limit"), default=min(20, max_rows), lo=1, hi=min(200, max_rows))
+    limit = _clamp(params.get("limit"), default=max_rows, lo=1, hi=max_rows)
     end_y = decade + 10
     with get_connection() as conn:
         with conn.cursor() as cur:
